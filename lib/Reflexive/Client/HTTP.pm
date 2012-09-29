@@ -75,7 +75,7 @@ has protocol => (
 
 =attr timeout
 
-So far see L<POE::Component::Client::HTTP/timeout>.
+So far see L<POE::Component::Client::HTTP/Timeout>.
 
 =cut
 
@@ -109,7 +109,7 @@ redirects at all.
 
 If redirects are followed, a response chain should be built, and can be
 accessed through $event->response->previous() or $_->previous() if you use a
-callback on L</request>. See HTTP::Response for details here.
+callback on L</request>. See L<HTTP::Response> for details here.
 
 =cut
 
@@ -122,9 +122,9 @@ has follow_redirects => (
 =attr proxy
 
 C<proxy> specifies one or more proxy hosts that requests will be passed
-through.  If not specified, proxy servers will be taken from the HTTP_PROXY
-(or http_proxy) environment variable. No proxying will occur unless C<proxy>
-is set or one of the environment variables exists.
+through.  If not specified, proxy servers will be taken from the B<HTTP_PROXY>
+(or B<http_proxy>) environment variable. No proxying will occur unless
+C<proxy> is set or one of the environment variables exists.
 
 The proxy can be specified either as a host and port, or as one or more URLs.
 C<proxy> URLs must specify the proxy port, even if it is 80.
@@ -133,7 +133,7 @@ C<proxy> URLs must specify the proxy port, even if it is 80.
   proxy => "http://127.0.0.1:80/",
 
 C<proxy> may specify multiple proxies separated by commas.
-Reflexive::Client::HTTP will choose proxies from this list at random. This is
+L<Reflexive::Client::HTTP> will choose proxies from this list at random. This is
 useful for load balancing requests through multiple gateways.
 
   proxy => "http://127.0.0.1:80/,http://127.0.0.1:81/",
@@ -150,7 +150,7 @@ has proxy => (
 
 C<no_proxy> specifies a list of server hosts that will not be proxied. It is
 useful for local hosts and hosts that do not properly support proxying. If
-C<no_proxy> is not specified, a list will be taken from the NO_PROXY
+C<no_proxy> is not specified, a list will be taken from the B<NO_PROXY>
 environment variable.
 
   no_proxy => [ "localhost", "127.0.0.1" ],
@@ -166,8 +166,7 @@ has no_proxy => (
 
 =attr bind_addr
 
-Specify C<bind_addr> to bind all client sockets to a particular local
-address.
+Specify C<bind_addr> to bind all client sockets to a particular local address.
 
 =cut
 
@@ -290,6 +289,14 @@ sub _internal_http_response {
 }
 
 1;
+
+=head1 SEE ALSO
+
+L<Reflexive::Client::HTTP::Role>
+
+L<HTTP::Request> L<HTTP::Response>
+
+L<Reflex>
 
 =head1 THANKS
 
