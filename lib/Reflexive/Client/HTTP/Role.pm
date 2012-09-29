@@ -5,7 +5,6 @@ use Moose::Role;
 
 with 'Reflex::Role::Reactive';
 
-use Reflex::POE::Wheel::Run;
 use Reflex::Trait::Watched qw(watches);
 use Reflexive::Client::HTTP;
 
