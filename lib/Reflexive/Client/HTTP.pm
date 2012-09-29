@@ -31,6 +31,9 @@ use POE::Component::Client::HTTP;
 use Reflex::POE::Event;
 use Reflexive::Client::HTTP::ResponseEvent;
 
+use HTTP::Request;
+use HTTP::Response;
+
 use Carp qw( croak );
 
 =attr agent

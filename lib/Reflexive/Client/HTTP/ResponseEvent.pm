@@ -4,10 +4,9 @@ package Reflexive::Client::HTTP::ResponseEvent;
 use Moose;
 extends 'Reflex::Event';
 
-use HTTP::Request;
-use HTTP::Response;
+=head1 DESCRIPTION
 
-=attr
+=attr request
 
 L<HTTP::Request> object of the event.
 
@@ -19,7 +18,7 @@ has request => (
 	required => 1,
 );
 
-=attr
+=attr response
 
 L<HTTP::Response> object of the given L</request>.
 
