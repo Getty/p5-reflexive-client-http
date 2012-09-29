@@ -3,6 +3,25 @@ package Reflexive::Client::HTTP;
 
 our $VERSION ||= '0.000';
 
+=head1 SYNOPSIS
+
+  my $ua = Reflexive::Client::HTTP->new;
+
+  for my $url (qw( http://duckduckgo.com/ http://perl.org/ )) {
+    $ua->request(
+      HTTP::Request->new( GET => $url ),
+	  sub { print $url." gave me a ".$_->code."\n" },
+    );
+  }
+
+  Reflex->run_all();
+
+=head1 DESCRIPTION
+
+Reflexive::Client::HTTP is an HTTP user-agent for L<Reflex>.
+
+=cut
+
 use Moose;
 extends 'Reflex::Base';
 
@@ -11,7 +30,6 @@ use Reflex::POE::Event;
 use Reflexive::Client::HTTP::ResponseEvent;
 
 use Carp qw( croak );
-use Scalar::Util qw( refaddr );
 
 =attr agent
 
@@ -27,6 +45,11 @@ has agent => (
 );
 
 =attr from
+
+C<from> holds an e-mail address where the client's administrator and/or
+maintainer may be reached.  It defaults to undef, which means no From header
+will be included in requests.
+
 =cut
 
 has from => (
@@ -36,6 +59,10 @@ has from => (
 );
 
 =attr protocol
+
+C<protocol> advertises the protocol that the client wishes to see. Under
+normal circumstances, it should be left to its default value: "HTTP/1.1".
+
 =cut
 
 has protocol => (
@@ -45,6 +72,9 @@ has protocol => (
 );
 
 =attr timeout
+
+So far see L<POE::Component::Client::HTTP/timeout>.
+
 =cut
 
 has timeout => (
@@ -54,6 +84,12 @@ has timeout => (
 );
 
 =attr max_size
+
+C<max_size> specifies the largest response to accept from a server. The
+content of larger responses will be truncated to OCTET octets. This has been
+used to return the <head></head> section of web pages without the need to wade
+through <body></body>.
+
 =cut
 
 has max_size => (
@@ -63,6 +99,16 @@ has max_size => (
 );
 
 =attr follow_redirects
+
+C<follow_redirects> specifies how many redirects (e.g. 302 Moved) to follow.
+If not specified defaults to 0, and thus no redirection is followed. This
+maintains compatibility with the previous behavior, which was not to follow
+redirects at all.
+
+If redirects are followed, a response chain should be built, and can be
+accessed through $event->response->previous() or $_->previous() if you use a
+callback on L</request>. See HTTP::Response for details here.
+
 =cut
 
 has follow_redirects => (
@@ -72,24 +118,55 @@ has follow_redirects => (
 );
 
 =attr proxy
+
+C<proxy> specifies one or more proxy hosts that requests will be passed
+through.  If not specified, proxy servers will be taken from the HTTP_PROXY
+(or http_proxy) environment variable. No proxying will occur unless C<proxy>
+is set or one of the environment variables exists.
+
+The proxy can be specified either as a host and port, or as one or more URLs.
+C<proxy> URLs must specify the proxy port, even if it is 80.
+
+  proxy => [ "127.0.0.1", 80 ],
+  proxy => "http://127.0.0.1:80/",
+
+C<proxy> may specify multiple proxies separated by commas.
+Reflexive::Client::HTTP will choose proxies from this list at random. This is
+useful for load balancing requests through multiple gateways.
+
+  proxy => "http://127.0.0.1:80/,http://127.0.0.1:81/",
+
 =cut
 
 has proxy => (
 	is        => 'ro',
-	isa       => 'Str',
+	isa       => 'ArrayRef[Str]|Str',
 	predicate => 'has_proxy',
 );
 
 =attr no_proxy
+
+C<no_proxy> specifies a list of server hosts that will not be proxied. It is
+useful for local hosts and hosts that do not properly support proxying. If
+C<no_proxy> is not specified, a list will be taken from the NO_PROXY
+environment variable.
+
+  no_proxy => [ "localhost", "127.0.0.1" ],
+  no_proxy => "localhost,127.0.0.1",
+
 =cut
 
 has no_proxy => (
 	is        => 'ro',
-	isa       => 'ArrayRef[Str]',
+	isa       => 'ArrayRef[Str]|Str',
 	predicate => 'has_no_proxy',
 );
 
 =attr bind_addr
+
+Specify C<bind_addr> to bind all client sockets to a particular local
+address.
+
 =cut
 
 has bind_addr => (
@@ -98,16 +175,9 @@ has bind_addr => (
 	predicate => 'has_bind_addr',
 );
 
-=attr alias
-
-The internal POE alias. It is actually never required to set this attribute to
-a different value. Or in other words: NO NO TOUCHY!
-
-=cut
-
 my $alias_id = 0;
 
-has alias => (
+has _alias => (
 	is      => 'ro',
 	isa     => 'Str',
 	default => sub { 'reflexive_client_http_alias_'.(++$alias_id) },
@@ -129,7 +199,7 @@ sub BUILD {
 		$self->has_no_proxy ? ( NoProxy => $self->no_proxy ) : (),
 		$self->has_bind_addr ? ( BindAddr => $self->bind_addr ) : (),
 
-		Alias => $self->alias,
+		Alias => $self->_alias,
 	);
 }
 
@@ -139,8 +209,26 @@ sub DESTRUCT {
 	# Shut down POE::Component::Client::HTTP when this object is
 	# destroyed.
 
-	POE::Kernel->post(ua => $self->alias());
+	POE::Kernel->post( ua => $self->_alias );
 }
+
+=method request
+
+This function takes as first argument a L<HTTP::Request> and any additional
+number of arguments you want to give. If you are accessing the client via
+C<watches> then the args are in the
+L<Reflexive::Client::HTTP::ResponseEvent/args> attribute.
+
+If you give as first additional argumnet a CodeRef, then this one gets
+executed instead of the emitting of the
+L<Reflexive::Client::HTTP::ResponseEvent>. It gets all other additional
+arguments of the C<request> call given as own arguments. Additionall we set
+B<$_> to the L<HTTP::Response> object.
+
+If you require access to the L<HTTP::Request> object via this method, you need
+to apply it as one of your arguments yourself on the call of C<request>
+
+=cut
 
 sub request {
 	# Make a request.
@@ -161,11 +249,11 @@ sub request {
 	$self->run_within_session(
 		sub {
 			POE::Kernel->post(
-				$self->alias(),
+				$self->_alias,
 				'request',
 				Reflex::POE::Event->new(
 					object => $self,
-					method => 'internal_http_response',
+					method => '_internal_http_response',
 					context => { args => [@args] },
 				),
 				$http_request,
@@ -174,7 +262,7 @@ sub request {
 	);
 }
 
-sub internal_http_response {
+sub _internal_http_response {
 	my ($self, $args) = @_;
 
 	my @request_args = @{ $args->{context}->{args} };
