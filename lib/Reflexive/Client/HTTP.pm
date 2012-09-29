@@ -291,6 +291,8 @@ sub _internal_http_response {
 	}
 }
 
+__PACKAGE__->meta->make_immutable;
+
 1;
 
 =head1 SEE ALSO

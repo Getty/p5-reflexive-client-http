@@ -81,4 +81,6 @@ See L<Reflexive::Client::HTTP/request>.
 
 =cut
 
+__PACKAGE__->meta->make_immutable;
+
 1;
