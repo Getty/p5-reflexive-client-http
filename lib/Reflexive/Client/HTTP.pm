@@ -279,9 +279,7 @@ sub _internal_http_response {
 			$callback->(@request_args);
 		}
 	} else {
-		$self->emit(
-			-name    => 'response',
-
+		$self->emit_response(
 			-type    => 'Reflexive::Client::HTTP::ResponseEvent',
 			request  => $request->[0],
 			response => $response->[0],
@@ -289,6 +287,11 @@ sub _internal_http_response {
 			@request_args ? ( args => [@request_args] ) : (),
 		);
 	}
+}
+
+sub emit_response {
+	my ( $self, @args ) = @_;
+	$self->emit( -name => 'response', @args );
 }
 
 __PACKAGE__->meta->make_immutable;
