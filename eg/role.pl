@@ -8,8 +8,6 @@ use lib qw(../lib);
 	package MySampleClient;
 
 	use Moose;
-	extends 'Reflex::Base';
-
 	with 'Reflexive::Client::HTTP::Role';
 
 	sub on_http_response {
