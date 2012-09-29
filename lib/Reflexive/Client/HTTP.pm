@@ -1,5 +1,5 @@
 package Reflexive::Client::HTTP;
-# ABSTRACT: A Reflex HTTP Client
+# ABSTRACT: A Reflex(ive) HTTP Client
 
 our $VERSION ||= '0.000';
 
@@ -18,7 +18,9 @@ our $VERSION ||= '0.000';
 
 =head1 DESCRIPTION
 
-Reflexive::Client::HTTP is an HTTP user-agent for L<Reflex>.
+Reflexive::Client::HTTP is an HTTP user-agent for L<Reflex>. At the current
+state it is only a wrapper around L<POE::Component::Client::HTTP>, but we will
+try to assure stability to the API.
 
 =cut
 
