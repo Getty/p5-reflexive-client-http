@@ -279,19 +279,19 @@ sub _internal_http_response {
 			$callback->(@request_args);
 		}
 	} else {
-		$self->emit_response(
-			-type    => 'Reflexive::Client::HTTP::ResponseEvent',
-			request  => $request->[0],
-			response => $response->[0],
-
-			@request_args ? ( args => [@request_args] ) : (),
-		);
+		$self->emit_response($request->[0],$response->[0],@request_args);
 	}
 }
 
 sub emit_response {
-	my ( $self, @args ) = @_;
-	$self->emit( -name => 'response', @args );
+	my ( $self, $request, $response, @args ) = @_;
+	$self->emit(
+		-name => 'response',
+		-type    => 'Reflexive::Client::HTTP::ResponseEvent',
+		request  => $request,
+		response => $response,
+		@args ? ( args => [@args] ) : (),
+	);
 }
 
 __PACKAGE__->meta->make_immutable;
