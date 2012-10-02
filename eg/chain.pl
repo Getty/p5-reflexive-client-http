@@ -1,13 +1,14 @@
 #!/usr/bin/env perl
 
+$|=1;
+
 use warnings;
 use strict;
-use lib qw(../lib);
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 
 use Reflexive::Client::HTTP;
 use HTTP::Request;
-
-$|=1;
 
 my $ua = Reflexive::Client::HTTP->new;
 

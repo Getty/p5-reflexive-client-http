@@ -229,8 +229,27 @@ L<Reflexive::Client::HTTP::ResponseEvent>. It gets all other additional
 arguments of the C<request> call given as own arguments. Additionall we set
 B<$_> to the L<HTTP::Response> object.
 
+  $ua->request( HTTP::Request->new( GET => "http://duckduckgo.com/" ), sub {
+    print "DuckDuckGo gave me ".$_->code."\n";
+  });
+
 If you require access to the L<HTTP::Request> object via this method, you need
 to apply it as one of your arguments yourself on the call of C<request>
+
+A special feature of this fuction is the option to directly chain it. If you
+are using the CodeRef callback, you can return a new L<HTTP::Request> from
+this CodeRef together with a new CodeRef and more arguments, to trigger
+another request for another callback.
+
+  $ua->request( HTTP::Request->new( GET => "http://duckduckgo.com/" ), sub {
+    print "DuckDuckGo gave me ".$_->code."\n";
+    return HTTP::Request->new( GET => "http://perl.org/" ), sub {
+      print "Perl gave me ".$_->code."\n";
+      return HTTP::Request->new( GET => "http://metacpan.org/" ), sub {
+        print "MetaCPAN gave me ".$_->code."\n";
+      };
+    };
+  });
 
 =cut
 

@@ -1,8 +1,11 @@
 #!/usr/bin/env perl
 
+$|=1;
+
 use warnings;
 use strict;
-use lib qw(../lib);
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 
 {
 	package MySampleClient;
