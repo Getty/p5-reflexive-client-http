@@ -276,7 +276,10 @@ sub _internal_http_response {
 	if (defined $request_args[0] && ref $request_args[0] eq 'CODE') {
 		my $callback = shift @request_args;
 		for ($response->[0]) {
-			$callback->(@request_args);
+			my @return = $callback->(@request_args);
+			if (@return && ref $return[0] eq 'HTTP::Request') {
+				$self->request(@return);
+			}
 		}
 	} else {
 		$self->emit_response($request->[0],$response->[0],@request_args);
